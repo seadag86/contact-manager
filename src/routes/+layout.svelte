@@ -2,6 +2,8 @@
 	import "../app.css";
 	import { page } from "$app/stores";
 	import { Navbar, NavBrand, NavHamburger, NavUl, NavLi, Button } from "flowbite-svelte";
+	import { onMount } from "svelte";
+	import { invalidate } from "$app/navigation";
 
 	const navigation = [
 		{ label: "Home", href: "/" },
@@ -9,6 +11,22 @@
 		{ label: "Contacts", href: "/contacts" },
 		{ label: "Account", href: "/account" }
 	];
+
+	export let data;
+
+	$: ({ supabase, session } = data);
+
+	onMount(() => {
+		const {
+			data: { subscription }
+		} = supabase.auth.onAuthStateChange((event, _session) => {
+			if (_session?.expires_at !== session?.expires_at) {
+				invalidate("supabase:auth");
+			}
+		});
+
+		return () => subscription.unsubscribe();
+	});
 </script>
 
 <svelte:head>
