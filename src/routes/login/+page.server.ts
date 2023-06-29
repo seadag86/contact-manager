@@ -32,10 +32,12 @@ export const actions: Actions = {
 		const { error: authError } = await event.locals.supabase.auth.signInWithPassword(form.data);
 
 		if (authError) {
-			if (authError instanceof AuthApiError && authError.status === 401) {
-				setError(form, "email", "Invalid email or password.");
-				setError(form, "password", "Invalid email or password.");
-				fail(400, { form });
+			if (authError instanceof AuthApiError && authError.status === 400) {
+				setError(form, "email", "Invalid credentials");
+				setError(form, "password", "Invalid credentials");
+				return fail(400, {
+					form
+				});
 			}
 		}
 
