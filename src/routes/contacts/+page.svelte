@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { contacts } from "$lib/data";
 	import {
 		Button,
 		Dropdown,
@@ -12,13 +11,26 @@
 		TableHead,
 		TableHeadCell
 	} from "flowbite-svelte";
+	import type { PageData } from "./$types";
+	import CreateContactModal from "./CreateContactModal.svelte";
+	import DeleteContactModal from "./DeleteContactModal.svelte";
+
+	export let data: PageData;
+	let createContactOpen = false;
+	let deleteContactOpen = false;
+	let contactToDelete: string;
+
+	const handleContactDelete = (contact_id: string) => {
+		contactToDelete = contact_id;
+		deleteContactOpen = true;
+	};
 </script>
 
 <div class="py-20">
 	<!-- Contacts Page Header -->
 	<div class="flex w-full items-center justify-between pb-6">
 		<h1 class="text-3xl">Contacts</h1>
-		<Button size="sm">New Contact</Button>
+		<Button size="sm" on:click={() => (createContactOpen = true)}>New Contact</Button>
 	</div>
 	<!-- Contacts Table -->
 	<Table shadow divClass="min-h-full">
@@ -30,17 +42,18 @@
 			<TableHeadCell />
 		</TableHead>
 		<TableBody>
-			{#each contacts as contact, _i (contact.id)}
+			{#each data.contacts as contact, _i (contact.id)}
 				<TableBodyRow>
-					<TableBodyCell>{contact.name}</TableBodyCell>
-					<TableBodyCell>{contact.email}</TableBodyCell>
-					<TableBodyCell>{contact.phone}</TableBodyCell>
-					<TableBodyCell>{contact.company}</TableBodyCell>
+					<TableBodyCell>{contact.name ?? "--"}</TableBodyCell>
+					<TableBodyCell>{contact.email ?? "--"}</TableBodyCell>
+					<TableBodyCell>{contact.phone ?? "--"}</TableBodyCell>
+					<TableBodyCell>{contact.company ?? "--"}</TableBodyCell>
 					<TableBodyCell>
 						<MenuButton class="dots-menu dark:text-white" vertical name="Contact Menu" />
 						<Dropdown placement="left-start">
-							<DropdownItem>Edit</DropdownItem>
-							<DropdownItem slot="footer">Delete</DropdownItem>
+							<DropdownItem href="/contacts/{contact.id}">Edit</DropdownItem>
+							<DropdownItem slot="footer" on:click={() => handleContactDelete(contact.id)}
+								>Delete</DropdownItem>
 						</Dropdown>
 					</TableBodyCell>
 				</TableBodyRow>
@@ -48,3 +61,8 @@
 		</TableBody>
 	</Table>
 </div>
+<CreateContactModal data={data.createContactForm} bind:open={createContactOpen} />
+<DeleteContactModal
+	data={data.deleteContactForm}
+	contactId={contactToDelete}
+	bind:open={deleteContactOpen} />

@@ -2,8 +2,8 @@ import detect from "detect-port";
 import { execSync } from "child_process";
 import pg from "pg";
 import { ENV } from "$lib/server/env";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "$lib/supabase-types";
+import { supabaseAdmin } from "$lib/server/supabase-admin";
+import { faker } from "@faker-js/faker";
 import type { z } from "zod";
 import type { registerUserSchema } from "$lib/schemas";
 
@@ -25,12 +25,10 @@ export async function clearSupabaseData() {
 	await client.query("TRUNCATE auth.users CASCADE;");
 }
 
-const supabase = createClient<Database>(ENV.PUBLIC_SUPABASE_URL, ENV.PUBLIC_SUPABASE_ANON_KEY);
-
 type CreateUser = Omit<z.infer<typeof registerUserSchema>, "passwordConfirm">;
 
 export async function createUser(user: CreateUser) {
-	const { data: authData, error: authError } = await supabase.auth.signUp({
+	const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
 		email: user.email,
 		password: user.password,
 		options: {
@@ -45,4 +43,24 @@ export async function createUser(user: CreateUser) {
 	}
 
 	return authData.user;
+}
+
+export async function createContact(user_id: string) {
+	const firstName = faker.name.firstName();
+	const lastName = faker.name.lastName();
+	const contact = {
+		name: `${firstName} ${lastName}`,
+		email: faker.internet.email(firstName, lastName),
+		company: faker.company.name(),
+		phone: faker.phone.number(),
+		user_id
+	};
+
+	const { error, data } = await supabaseAdmin.from("contacts").insert(contact);
+
+	if (error) {
+		throw error;
+	}
+
+	return data;
 }

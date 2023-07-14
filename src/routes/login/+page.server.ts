@@ -4,7 +4,7 @@ import type { Actions, PageServerLoad } from "./$types";
 import { fail, redirect } from "@sveltejs/kit";
 import { AuthApiError } from "@supabase/supabase-js";
 
-const registerUserSchema = z.object({
+const loginUserSchema = z.object({
 	email: z.string().email("Invalid email address"),
 	password: z.string().min(8, "Password must be at least 6 characters")
 });
@@ -17,13 +17,13 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	return {
-		form: await superValidate(event, registerUserSchema)
+		form: await superValidate(event, loginUserSchema)
 	};
 };
 
 export const actions: Actions = {
 	default: async (event) => {
-		const form = await superValidate(event, registerUserSchema);
+		const form = await superValidate(event, loginUserSchema);
 
 		if (!form.valid) {
 			return fail(400, { form });
